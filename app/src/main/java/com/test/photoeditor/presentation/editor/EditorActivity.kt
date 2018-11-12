@@ -1,4 +1,4 @@
-package com.test.photoeditor.presentation
+package com.test.photoeditor.presentation.editor
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
