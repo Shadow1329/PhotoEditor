@@ -30,16 +30,16 @@ class GalleryPresenter(private val context: Context, private val imagesListGet: 
         imagesListGet.execute(ImageListObserver(), null)
     }
 
+    private fun requestPermission(permission: String, requestCode: Int) {
+        viewState.onRequestForPermissions(arrayOf(permission), requestCode)
+    }
+
     private fun checkPermission(permission: String, requestCode: Int) {
         if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
             viewState.onCheckPermissionRationale(permission, requestCode)
         } else {
             loadImages()
         }
-    }
-
-    private fun requestPermission(permission: String, requestCode: Int) {
-        viewState.onRequestForPermissions(arrayOf(permission), requestCode)
     }
 
     fun handlePermissionRationale(permission: String, requestCode: Int, result: Boolean) {
@@ -62,6 +62,10 @@ class GalleryPresenter(private val context: Context, private val imagesListGet: 
                 }
             }
         }
+    }
+
+    fun imageSelected(image: ImageItem) {
+        viewState.onStartEditorActivity(image.path)
     }
 
     companion object {

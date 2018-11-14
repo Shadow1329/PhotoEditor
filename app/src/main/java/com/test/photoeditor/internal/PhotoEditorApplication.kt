@@ -1,10 +1,7 @@
 package com.test.photoeditor.internal
 
 import android.app.Application
-import com.test.photoeditor.internal.di.ApplicationComponent
-import com.test.photoeditor.internal.di.ApplicationModule
-import com.test.photoeditor.internal.di.DaggerApplicationComponent
-import com.test.photoeditor.internal.di.GalleryModule
+import com.test.photoeditor.internal.di.*
 
 class PhotoEditorApplication : Application() {
     private lateinit var mApplicationComponent: ApplicationComponent
@@ -16,6 +13,7 @@ class PhotoEditorApplication : Application() {
                 .builder()
                 .applicationModule(ApplicationModule(this))
                 .galleryModule(GalleryModule())
+                .editorModule(EditorModule())
                 .build()
     }
 

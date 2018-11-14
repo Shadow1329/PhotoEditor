@@ -12,10 +12,11 @@ import com.arellomobile.mvp.presenter.ProvidePresenter
 import com.test.photoeditor.R
 import com.test.photoeditor.domain.model.ImageItem
 import com.test.photoeditor.internal.PhotoEditorApplication
+import com.test.photoeditor.presentation.editor.EditorActivity
 import kotlinx.android.synthetic.main.activity_gallery.*
 import javax.inject.Inject
 
-class GalleryActivity : MvpAppCompatActivity(), GalleryView {
+class GalleryActivity : MvpAppCompatActivity(), GalleryView, ImageAdapterListener {
     @Inject
     @InjectPresenter
     lateinit var galleryPresenter: GalleryPresenter
@@ -41,6 +42,19 @@ class GalleryActivity : MvpAppCompatActivity(), GalleryView {
         galleryPresenter.handlePermissionResult(requestCode, grantResults)
     }
 
+    override fun onImageSelected(image: ImageItem) {
+        galleryPresenter.imageSelected(image)
+    }
+
+    override fun onShowImages(images: List<ImageItem>) {
+        val imagesAdapter = ImageAdapter(images, this)
+        imageGalleryView.adapter = imagesAdapter
+    }
+
+    override fun onStartEditorActivity(imagePath: String) {
+        EditorActivity.start(this, imagePath)
+    }
+
     override fun onCheckPermissionRationale(permission: String, requestCode: Int) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             galleryPresenter.handlePermissionRationale(permission, requestCode, shouldShowRequestPermissionRationale(permission))
@@ -62,11 +76,6 @@ class GalleryActivity : MvpAppCompatActivity(), GalleryView {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(permissions, requestCode)
         }
-    }
-
-    override fun onShowImages(images: List<ImageItem>) {
-        val imagesAdapter = ImagesAdapter(images)
-        imageGalleryView.adapter = imagesAdapter
     }
 
     override fun onShowMessage(message: String) {
