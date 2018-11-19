@@ -71,11 +71,11 @@ static float3 rgbTohsl(uchar red1, uchar green1, uchar blue1) {
     float maxRGB = max( r, max( g, b ) );
     float deltaRGB = maxRGB - minRGB;
 
-    float hue = 0.0;
+    float hue = 0.0f;
     float lightness = (maxRGB + minRGB) / 2.0f;
     float saturation = lightness > 0.5f ? deltaRGB / (2.0f - maxRGB - minRGB) : deltaRGB / (maxRGB + minRGB);
 
-    if (deltaRGB != 0) {
+    if (deltaRGB != 0.0f) {
 
         if (r == maxRGB) {
             hue = (g - b) / deltaRGB;
@@ -132,6 +132,21 @@ static uchar4 hslTorgb(float hue, float saturation, float lightness) {
     return out;
 }
 
+static void applyFilter(ColorFilter_t *filter, float *h, float *s, float *l) {
+    *h = *h - 30 + 60 * (filter->hue);
+    *s = *s - 0.3 + 0.6 * (filter->saturation);
+    *l = *l - 0.3 + 0.6 * (filter->lightness);
+}
+
+static void rangeValues(float *h, float *s, float *l) {
+    if (*h < 0.0f) { *h += 360.0f; }
+    if (*h >= 360.0f) { *h -= 360.0f; }
+    if (*s < 0.0f) { *s = 0.0f; }
+    if (*s > 1.0f) { *s = 1.0f; }
+    if (*l < 0.0f) { *l = 0.0f; }
+    if (*l > 1.0f) { *l = 1.0f; }
+}
+
 uchar4 __attribute__((kernel)) filter(uchar4 in) {
 
     // convert rgb to hsl
@@ -142,38 +157,21 @@ uchar4 __attribute__((kernel)) filter(uchar4 in) {
 
     // filter colors
     if (hue >= 330 || hue < 30) {
-        hue = hue - 30 + 60 * (redFilter.hue);
-        saturation = saturation - 0.3 + 0.6 * (redFilter.saturation);
-        lightness = lightness - 0.3 + 0.6 * (redFilter.lightness);
+        applyFilter(&redFilter, &hue, &saturation, &lightness);
     } else if (hue >= 30 && hue < 90) {
-        hue = hue - 30 + 60 * (yellowFilter.hue);
-        saturation = saturation - 0.3 + 0.6 * (yellowFilter.saturation);
-        lightness = lightness - 0.3 + 0.6 * (yellowFilter.lightness);
+        applyFilter(&yellowFilter, &hue, &saturation, &lightness);
     } else if (hue >= 90 && hue < 150) {
-        hue = hue - 30 + 60 * (greenFilter.hue);
-        saturation = saturation - 0.3 + 0.6 * (greenFilter.saturation);
-        lightness = lightness - 0.3 + 0.6 * (greenFilter.lightness);
+        applyFilter(&greenFilter, &hue, &saturation, &lightness);
     } else if (hue >= 150 && hue < 210) {
-        hue = hue - 30 + 60 * (aquaFilter.hue);
-        saturation = saturation - 0.3 + 0.6 * (aquaFilter.saturation);
-        lightness = lightness - 0.3 + 0.6 * (aquaFilter.lightness);
+        applyFilter(&aquaFilter, &hue, &saturation, &lightness);
     } else if (hue >= 210 && hue < 270) {
-        hue = hue - 30 + 60 * (blueFilter.hue);
-        saturation = saturation - 0.3 + 0.6 * (blueFilter.saturation);
-        lightness = lightness - 0.3 + 0.6 * (blueFilter.lightness);
+        applyFilter(&blueFilter, &hue, &saturation, &lightness);
     } else if (hue >= 270 && hue < 330) {
-        hue = hue - 30 + 60 * (purpleFilter.hue);
-        saturation = saturation - 0.3 + 0.6 * (purpleFilter.saturation);
-        lightness = lightness - 0.3 + 0.6 * (purpleFilter.lightness);
+        applyFilter(&purpleFilter, &hue, &saturation, &lightness);
     }
 
     // range values
-    if (hue < 0.0f) { hue += 360.0f; }
-    if (hue >= 360.0f) { hue -= 360.0f; }
-    if (saturation < 0.0f) { saturation = 0.0f; }
-    if (saturation > 1.0f) { saturation = 1.0f; }
-    if (lightness < 0.0f) { lightness = 0.0f; }
-    if (lightness > 1.0f) { lightness = 1.0f; }
+    rangeValues(&hue, &saturation, &lightness);
 
     // convert hsl to rgb
     return hslTorgb(hue, saturation, lightness);
