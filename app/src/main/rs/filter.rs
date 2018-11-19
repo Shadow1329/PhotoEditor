@@ -161,17 +161,17 @@ uchar4 __attribute__((kernel)) filter(uchar4 in) {
     float lightness = hsl.z;
 
     // filter colors
-    if (hue >= 330 || hue < 30) {
+    if (hue >= gPRBorder || hue < gRYBorder) {
         applyFilter(&redFilter, &hue, &saturation, &lightness);
-    } else if (hue >= 30 && hue < 90) {
+    } else if (hue >= gRYBorder && hue < gYGBorder) {
         applyFilter(&yellowFilter, &hue, &saturation, &lightness);
-    } else if (hue >= 90 && hue < 150) {
+    } else if (hue >= gYGBorder && hue < gGABorder) {
         applyFilter(&greenFilter, &hue, &saturation, &lightness);
-    } else if (hue >= 150 && hue < 210) {
+    } else if (hue >= gGABorder && hue < gABBorder) {
         applyFilter(&aquaFilter, &hue, &saturation, &lightness);
-    } else if (hue >= 210 && hue < 270) {
+    } else if (hue >= gABBorder && hue < gBPBorder) {
         applyFilter(&blueFilter, &hue, &saturation, &lightness);
-    } else if (hue >= 270 && hue < 330) {
+    } else if (hue >= gBPBorder && hue < gPRBorder) {
         applyFilter(&purpleFilter, &hue, &saturation, &lightness);
     }
 
