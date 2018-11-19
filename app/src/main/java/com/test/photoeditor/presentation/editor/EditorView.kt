@@ -12,6 +12,9 @@ interface EditorView : MvpView {
     fun closeActivity()
 
     @StateStrategyType(OneExecutionStateStrategy::class)
+    fun showSaveDialog()
+
+    @StateStrategyType(OneExecutionStateStrategy::class)
     fun setHSLBars(hslFilter: HSLFilter)
 
     fun setRedFilter(hslFilter: HSLFilter)

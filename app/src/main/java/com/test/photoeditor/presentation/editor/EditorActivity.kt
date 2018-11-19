@@ -1,5 +1,6 @@
 package com.test.photoeditor.presentation.editor
 
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import com.test.photoeditor.R
@@ -14,6 +15,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Bitmap
 import android.support.v8.renderscript.Allocation
 import android.support.v8.renderscript.RenderScript
+import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.Toast
 import com.test.photoeditor.ScriptC_filter
@@ -108,6 +110,23 @@ class EditorActivity : MvpAppCompatActivity(), EditorView {
 
     override fun closeActivity() {
         finish()
+    }
+
+    override fun showSaveDialog() {
+        val alert = AlertDialog.Builder(this)
+
+        alert.setTitle("Save image")
+        alert.setMessage("Enter filename")
+
+        val fileName = EditText(this)
+        alert.setView(fileName)
+
+        alert.setPositiveButton("Ok") { _, _ ->
+            editorPresenter.saveImage(fileName.text.toString(), outputBitmap)
+        }
+
+        alert.setNegativeButton("Cancel", null)
+        alert.show()
     }
 
     override fun setHSLBars(hslFilter: HSLFilter) {

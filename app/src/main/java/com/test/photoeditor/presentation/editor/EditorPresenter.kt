@@ -1,13 +1,17 @@
 package com.test.photoeditor.presentation.editor
 
+import android.graphics.Bitmap
 import com.arellomobile.mvp.InjectViewState
 import com.arellomobile.mvp.MvpPresenter
 import com.test.photoeditor.R
+import com.test.photoeditor.domain.interactor.ImageSave
 import com.test.photoeditor.domain.model.ColorType
 import com.test.photoeditor.domain.model.HSLFilter
+import io.reactivex.observers.DisposableCompletableObserver
+import java.io.ByteArrayOutputStream
 
 @InjectViewState
-class EditorPresenter : MvpPresenter<EditorView>() {
+class EditorPresenter(private val imageSave: ImageSave) : MvpPresenter<EditorView>() {
     private val filters = Array(ColorType.values().size) { HSLFilter(DIVIDER, DEFAULT_VALUE, DEFAULT_VALUE, DEFAULT_VALUE) }
     private lateinit var selectedColor: ColorType
 
@@ -19,12 +23,27 @@ class EditorPresenter : MvpPresenter<EditorView>() {
         viewState.updateImage()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        imageSave.dispose()
+    }
+
     fun closeButtonPressed() {
         viewState.closeActivity()
     }
 
     fun saveButtonPressed() {
+        viewState.showSaveDialog()
+    }
 
+    fun saveImage(fileName: String, bitmap: Bitmap) {
+        if (!fileName.isEmpty()) {
+            val byteStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream)
+            imageSave.execute(ImageSaveObserver(), Pair(fileName, byteStream))
+        } else {
+            viewState.onShowMessage("Filename is empty")
+        }
     }
 
     fun hueBarChanged(value: Int) {
@@ -75,5 +94,17 @@ class EditorPresenter : MvpPresenter<EditorView>() {
     companion object {
         private const val DEFAULT_VALUE = 50
         private const val DIVIDER = 100.0f
+    }
+
+    private inner class ImageSaveObserver: DisposableCompletableObserver() {
+        override fun onComplete() {
+            viewState.onShowMessage("Image saved")
+        }
+
+        override fun onError(e: Throwable) {
+            e.message?.let {
+                viewState.onShowMessage(it)
+            }
+        }
     }
 }

@@ -32,6 +32,11 @@ class GalleryActivity : MvpAppCompatActivity(), GalleryView, ImageAdapterListene
         setupUI()
     }
 
+    override fun onStart() {
+        super.onStart()
+        galleryPresenter.updateImageList()
+    }
+
     private fun setupUI() {
         setContentView(R.layout.activity_gallery)
         imageGalleryView.setHasFixedSize(true)

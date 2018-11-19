@@ -13,17 +13,17 @@ import io.reactivex.observers.DisposableSingleObserver
 
 @InjectViewState
 class GalleryPresenter(private val context: Context, private val imagesListGet: ImageListGet) : MvpPresenter<GalleryView>() {
-    init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE_PERMISSION_RESPONSE)
-        } else {
-            loadImages()
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         imagesListGet.dispose()
+    }
+
+    fun updateImageList() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE_PERMISSION_RESPONSE)
+        } else {
+            loadImages()
+        }
     }
 
     private fun loadImages() {
@@ -56,7 +56,7 @@ class GalleryPresenter(private val context: Context, private val imagesListGet: 
 
     fun handlePermissionResult(requestCode: Int, grantResults: IntArray) {
         when (requestCode) {
-            READ_EXTERNAL_STORAGE_PERMISSION_RESPONSE -> {
+            WRITE_EXTERNAL_STORAGE_PERMISSION_RESPONSE -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     loadImages()
                 }
@@ -69,7 +69,7 @@ class GalleryPresenter(private val context: Context, private val imagesListGet: 
     }
 
     companion object {
-        private const val READ_EXTERNAL_STORAGE_PERMISSION_RESPONSE = 4001
+        private const val WRITE_EXTERNAL_STORAGE_PERMISSION_RESPONSE = 4001
     }
 
     private inner class ImageListObserver: DisposableSingleObserver<List<ImageItem>>() {
