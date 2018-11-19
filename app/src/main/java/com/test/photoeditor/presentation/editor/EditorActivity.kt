@@ -15,13 +15,11 @@ import android.graphics.Bitmap
 import android.support.v8.renderscript.Allocation
 import android.support.v8.renderscript.RenderScript
 import android.widget.SeekBar
+import android.widget.Toast
 import com.test.photoeditor.ScriptC_filter
+import com.test.photoeditor.domain.model.HSLFilter
 
 class EditorActivity : MvpAppCompatActivity(), EditorView {
-    enum class ColorType {
-        RED, YELLOW, GREEN, AQUA, BLUE, PURPLE
-    }
-
     @Inject
     @InjectPresenter
     lateinit var editorPresenter: EditorPresenter
@@ -30,7 +28,6 @@ class EditorActivity : MvpAppCompatActivity(), EditorView {
     private lateinit var allocationIn: Allocation
     private lateinit var allocationOut: Allocation
     private lateinit var outputBitmap: Bitmap
-    private lateinit var selectedColor: ColorType
 
     @ProvidePresenter
     fun providePresenter(): EditorPresenter {
@@ -48,23 +45,22 @@ class EditorActivity : MvpAppCompatActivity(), EditorView {
 
         val imagePath = intent.getStringExtra(IMAGE_PATH)
 
-        val options = BitmapFactory.Options()
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888
-
-        val inputBitmap = BitmapFactory.decodeFile(imagePath, options)
+        val inputBitmap = loadBitmap(imagePath)
         outputBitmap = Bitmap.createBitmap(inputBitmap)
 
         val rs = RenderScript.create(this)
         filterScript = ScriptC_filter(rs)
         allocationIn = Allocation.createFromBitmap(rs, inputBitmap)
         allocationOut = Allocation.createFromBitmap(rs, outputBitmap)
+
         imageView.setImageBitmap(outputBitmap)
 
         hueBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 
-            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
-                setHue(selectedColor, i.div(100f))
-                filter()
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    editorPresenter.hueBarChanged(progress)
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
@@ -73,9 +69,10 @@ class EditorActivity : MvpAppCompatActivity(), EditorView {
 
         saturationBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 
-            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
-                setSaturation(selectedColor, i.div(100f))
-                filter()
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    editorPresenter.saturationBarChanged(progress)
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
@@ -84,9 +81,10 @@ class EditorActivity : MvpAppCompatActivity(), EditorView {
 
         lightnessBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 
-            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
-                setLightness(selectedColor, i.div(100f))
-                filter()
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    editorPresenter.lightnessBarChanged(progress)
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
@@ -94,59 +92,57 @@ class EditorActivity : MvpAppCompatActivity(), EditorView {
         })
 
         colorRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-            when (checkedId) {
-                R.id.redButton -> selectColor(ColorType.RED)
-                R.id.yellowButton -> selectColor(ColorType.YELLOW)
-                R.id.greenButton -> selectColor(ColorType.GREEN)
-                R.id.aquaButton -> selectColor(ColorType.AQUA)
-                R.id.blueButton -> selectColor(ColorType.BLUE)
-                R.id.purpleButton -> selectColor(ColorType.PURPLE)
-            }
-        }
-
-        colorRadioGroup.check(R.id.blueButton)
-        setHue(ColorType.RED, 0.5f)
-        setHue(ColorType.YELLOW, 0.5f)
-        setHue(ColorType.GREEN, 0.5f)
-        setHue(ColorType.AQUA, 0.5f)
-        setHue(ColorType.BLUE, 0.5f)
-        setHue(ColorType.PURPLE, 0.5f)
-    }
-
-    private fun selectColor(color: ColorType) {
-        selectedColor = color
-    }
-
-    private fun setHue(color: ColorType, value: Float) {
-        when(color) {
-            ColorType.RED -> filterScript.invoke_setRedFilter(value, 0.5f, 0.5f)
-            ColorType.YELLOW -> filterScript.invoke_setYellowFilter(value, 0.5f, 0.5f)
-            ColorType.GREEN -> filterScript.invoke_setGreenFilter(value, 0.5f, 0.5f)
-            ColorType.AQUA -> filterScript.invoke_setAquaFilter(value, 0.5f, 0.5f)
-            ColorType.BLUE -> filterScript.invoke_setBlueFilter(value, 0.5f, 0.5f)
-            ColorType.PURPLE -> filterScript.invoke_setPurpleFilter(value, 0.5f, 0.5f)
+            editorPresenter.colorSelectChanged(checkedId)
         }
     }
 
-    private fun setSaturation(color: ColorType, value: Float) {
-        when(color) {
-            ColorType.RED -> filterScript.invoke_setRedFilter(0.5f, value, 0.5f)
-        }
+    private fun loadBitmap(path: String): Bitmap {
+        val options = BitmapFactory.Options()
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888
+        return BitmapFactory.decodeFile(path, options)
     }
 
-    private fun setLightness(color: ColorType, value: Float) {
-        when(color) {
-            ColorType.RED -> filterScript.invoke_setRedFilter(0.5f, 0.5f, value)
-        }
+    override fun setHSLBars(hslFilter: HSLFilter) {
+        hueBar.progress = hslFilter.hueRaw
+        saturationBar.progress = hslFilter.saturationRaw
+        lightnessBar.progress = hslFilter.lightnessRaw
     }
 
-    private fun filter() {
+    override fun setRedFilter(hslFilter: HSLFilter) {
+        filterScript.invoke_setRedFilter(hslFilter.hue, hslFilter.saturation, hslFilter.lightness)
+    }
+
+    override fun setYellowFilter(hslFilter: HSLFilter) {
+        filterScript.invoke_setYellowFilter(hslFilter.hue, hslFilter.saturation, hslFilter.lightness)
+    }
+
+    override fun setGreenFilter(hslFilter: HSLFilter) {
+        filterScript.invoke_setGreenFilter(hslFilter.hue, hslFilter.saturation, hslFilter.lightness)
+    }
+
+    override fun setAquaFilter(hslFilter: HSLFilter) {
+        filterScript.invoke_setAquaFilter(hslFilter.hue, hslFilter.saturation, hslFilter.lightness)
+    }
+
+    override fun setBlueFilter(hslFilter: HSLFilter) {
+        filterScript.invoke_setBlueFilter(hslFilter.hue, hslFilter.saturation, hslFilter.lightness)
+    }
+
+    override fun setPurpleFilter(hslFilter: HSLFilter) {
+        filterScript.invoke_setPurpleFilter(hslFilter.hue, hslFilter.saturation, hslFilter.lightness)
+    }
+
+    override fun updateImage() {
         filterScript.forEach_filter(allocationIn, allocationOut)
         allocationOut.copyTo(outputBitmap)
     }
 
+    override fun onShowMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
     companion object {
-        const val IMAGE_PATH = "image_path"
+        private const val IMAGE_PATH = "image_path"
 
         fun start(context: Context, imagePath: String) {
             val intent = Intent(context, EditorActivity::class.java)

@@ -110,11 +110,12 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:button="@null"
+                android:checked="true"
                 android:drawableTop="?android:attr/listChoiceIndicatorSingle"
                 android:gravity="center"
                 android:text="Red"
-                android:textSize="16dp"
-                android:textColor="@color/colorRed" />
+                android:textColor="@color/colorRed"
+                android:textSize="16dp" />
 
             <android.support.v7.widget.AppCompatRadioButton
                 android:id="@+id/yellowButton"
