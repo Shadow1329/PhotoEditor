@@ -31,44 +31,34 @@ ColorFilter_t aquaFilter;
 ColorFilter_t blueFilter;
 ColorFilter_t purpleFilter;
 
-void setRedFilter(float hue, float saturation, float lightness) {
-    redFilter.hue = hue;
-    redFilter.saturation = saturation;
-    redFilter.lightness = lightness;
+static void setFilter(ColorFilter_t *filter, float h, float s, float l) {
+    filter->hue = h;
+    filter->saturation = s;
+    filter->lightness = l;
 }
 
-void setYellowFilter(float hue, float saturation, float lightness) {
-    yellowFilter.hue = hue;
-    yellowFilter.saturation = saturation;
-    yellowFilter.lightness = lightness;
+void setRedFilter(float h, float s, float l) {
+    setFilter(&redFilter, h, s, l);
 }
 
-void setGreenFilter(float hue, float saturation, float lightness) {
-    greenFilter.hue = hue;
-    greenFilter.saturation = saturation;
-    greenFilter.lightness = lightness;
+void setYellowFilter(float h, float s, float l) {
+    setFilter(&yellowFilter, h, s, l);
 }
 
-void setAquaFilter(float hue, float saturation, float lightness) {
-    aquaFilter.hue = hue;
-    aquaFilter.saturation = saturation;
-    aquaFilter.lightness = lightness;
+void setGreenFilter(float h, float s, float l) {
+    setFilter(&greenFilter, h, s, l);
 }
 
-void setBlueFilter(float hue, float saturation, float lightness) {
-    blueFilter.hue = hue;
-    blueFilter.saturation = saturation;
-    blueFilter.lightness = lightness;
+void setAquaFilter(float h, float s, float l) {
+    setFilter(&aquaFilter, h, s, l);
 }
 
-void setPurpleFilter(float hue, float saturation, float lightness) {
-    purpleFilter.hue = hue;
-    purpleFilter.saturation = saturation;
-    purpleFilter.lightness = lightness;
+void setBlueFilter(float h, float s, float l) {
+    setFilter(&blueFilter, h, s, l);
 }
 
-static void setFilter(ColorFilter_t *filter) {
-
+void setPurpleFilter(float h, float s, float l) {
+    setFilter(&purpleFilter, h, s, l);
 }
 
 static float3 rgbTohsl(uchar red1, uchar green1, uchar blue1) {
