@@ -19,6 +19,14 @@ class EditorPresenter : MvpPresenter<EditorView>() {
         viewState.updateImage()
     }
 
+    fun closeButtonPressed() {
+        viewState.closeActivity()
+    }
+
+    fun saveButtonPressed() {
+
+    }
+
     fun hueBarChanged(value: Int) {
         filters[selectedColor.ordinal].hueRaw = value
         updateFilter(selectedColor, filters[selectedColor.ordinal])

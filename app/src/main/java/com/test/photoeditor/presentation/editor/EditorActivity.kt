@@ -94,12 +94,20 @@ class EditorActivity : MvpAppCompatActivity(), EditorView {
         colorRadioGroup.setOnCheckedChangeListener { _, checkedId ->
             editorPresenter.colorSelectChanged(checkedId)
         }
+
+        closeButton.setOnClickListener { editorPresenter.closeButtonPressed() }
+
+        saveButton.setOnClickListener { editorPresenter.saveButtonPressed() }
     }
 
     private fun loadBitmap(path: String): Bitmap {
         val options = BitmapFactory.Options()
         options.inPreferredConfig = Bitmap.Config.ARGB_8888
         return BitmapFactory.decodeFile(path, options)
+    }
+
+    override fun closeActivity() {
+        finish()
     }
 
     override fun setHSLBars(hslFilter: HSLFilter) {

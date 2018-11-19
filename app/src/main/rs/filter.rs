@@ -18,7 +18,6 @@ const static uchar gABBorder = gAqua + gBorderSize;
 const static uchar gBPBorder = gBlue + gBorderSize;
 const static uchar gPRBorder = gPurple + gBorderSize;
 
-
 typedef struct ColorFilter {
     float hue;
     float saturation;
@@ -68,6 +67,47 @@ void setPurpleFilter(float hue, float saturation, float lightness) {
     purpleFilter.lightness = lightness;
 }
 
+static void setFilter(ColorFilter_t *filter) {
+
+}
+
+static float3 rgbTohsl(uchar red1, uchar green1, uchar blue1) {
+    // convert color to float
+    float r = red1 / 255.0f;
+    float g = green1 / 255.0f;
+    float b = blue1 / 255.0f;
+
+    float minRGB = min( r, min( g, b ) );
+    float maxRGB = max( r, max( g, b ) );
+    float deltaRGB = maxRGB - minRGB;
+
+    float hue = 0.0;
+    float lightness = (maxRGB + minRGB) / 2.0f;
+    float saturation = lightness > 0.5f ? deltaRGB / (2.0f - maxRGB - minRGB) : deltaRGB / (maxRGB + minRGB);
+
+    if (deltaRGB != 0) {
+
+        if (r == maxRGB) {
+            hue = (g - b) / deltaRGB;
+        }
+        else {
+            if (g == maxRGB) {
+                hue = 2 + (b - r) / deltaRGB;
+            }
+            else {
+                hue = 4 + (r - g) / deltaRGB;
+            }
+        }
+
+        hue *= 60;
+        if (hue < 0) { hue += 360; }
+        if (hue == 360) { hue = 0; }
+    }
+
+    float3 out = {hue, saturation, lightness};
+    return out;
+}
+
 static float hueToColor(float p, float q, float t) {
     if (t < 0.0f) t += 1.0f;
     if (t > 1.0f) t -= 1.0f;
@@ -77,40 +117,38 @@ static float hueToColor(float p, float q, float t) {
     return p;
 }
 
+static uchar4 hslTorgb(float hue, float saturation, float lightness) {
+    float h = hue / 360.0;
+    float r = 0.0;
+    float g = 0.0;
+    float b = 0.0;
+
+    if (saturation == 0) {
+        r = g = b = lightness;
+    } else {
+        float q = lightness < 0.5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
+        float p = 2 * lightness - q;
+
+        r = hueToColor(p, q, h + 1.0f / 3.0f);
+        g = hueToColor(p, q, h);
+        b = hueToColor(p, q, h - 1.0f / 3.0f);
+    }
+
+    uchar4 out;
+    out.r = r * 255;
+    out.g = g * 255;
+    out.b = b * 255;
+
+    return out;
+}
+
 uchar4 __attribute__((kernel)) filter(uchar4 in) {
 
-    // convert color to float
-    float red = in.r / 255.0f;
-    float green = in.g / 255.0f;
-    float blue = in.b / 255.0f;
-
     // convert rgb to hsl
-    float minRGB = min( red, min( green, blue ) );
-    float maxRGB = max( red, max( green, blue ) );
-    float deltaRGB = maxRGB - minRGB;
-
-    float hue = 0.0;
-    float lightness = (maxRGB + minRGB) / 2.0f;
-    float saturation = lightness > 0.5f ? deltaRGB / (2.0f - maxRGB - minRGB) : deltaRGB / (maxRGB + minRGB);
-
-    if (deltaRGB != 0) {
-
-        if (red == maxRGB) {
-            hue = (green - blue) / deltaRGB;
-        }
-        else {
-            if (green == maxRGB) {
-                hue = 2 + (blue - red) / deltaRGB;
-            }
-            else {
-                hue = 4 + (red - green) / deltaRGB;
-            }
-        }
-
-        hue *= 60;
-        if (hue < 0) { hue += 360; }
-        if (hue == 360) { hue = 0; }
-    }
+    float3 hsl = rgbTohsl(in.r, in.g, in.b);
+    float hue = hsl.x;
+    float saturation = hsl.y;
+    float lightness = hsl.z;
 
     // filter colors
     if (hue >= 330 || hue < 30) {
@@ -148,26 +186,5 @@ uchar4 __attribute__((kernel)) filter(uchar4 in) {
     if (lightness > 1.0f) { lightness = 1.0f; }
 
     // convert hsl to rgb
-    float h = hue / 360.0;
-    float r = 0.0;
-    float g = 0.0;
-    float b = 0.0;
-
-    if (saturation == 0) {
-        r = g = b = lightness;
-    } else {
-        float q = lightness < 0.5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
-        float p = 2 * lightness - q;
-
-        r = hueToColor(p, q, h + 1.0f / 3.0f);
-        g = hueToColor(p, q, h);
-        b = hueToColor(p, q, h - 1.0f / 3.0f);
-    }
-
-    uchar4 out;
-    out.r = r * 255;
-    out.g = g * 255;
-    out.b = b * 255;
-
-    return out;
+    return hslTorgb(hue, saturation, lightness);
 }

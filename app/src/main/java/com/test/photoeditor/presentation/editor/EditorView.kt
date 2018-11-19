@@ -9,6 +9,9 @@ import com.test.photoeditor.domain.model.HSLFilter
 @StateStrategyType(AddToEndSingleStrategy::class)
 interface EditorView : MvpView {
     @StateStrategyType(OneExecutionStateStrategy::class)
+    fun closeActivity()
+
+    @StateStrategyType(OneExecutionStateStrategy::class)
     fun setHSLBars(hslFilter: HSLFilter)
 
     fun setRedFilter(hslFilter: HSLFilter)
