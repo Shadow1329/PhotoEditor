@@ -2,21 +2,26 @@
 #pragma rs java_package_name(com.test.photoeditor)
 #pragma rs_fp_relaxed
 
-const static uchar gRed = 0;
-const static uchar gYellow = 60;
-const static uchar gGreen = 120;
-const static uchar gAqua = 180;
-const static uchar gBlue = 240;
-const static uchar gPurple = 300;
+const static int gRed = 0;
+const static int gYellow = 60;
+const static int gGreen = 120;
+const static int gAqua = 180;
+const static int gBlue = 240;
+const static int gPurple = 300;
 
-const static uchar gBorderSize = 30;
+const static int gHRegHalf = 30;
+const static int gHReg = gHRegHalf * 2;
+const static float gSRegHalf = 0.2f;
+const static float gSReg = gSRegHalf * 2;
+const static float gLRegHalf = 0.2f;
+const static float gLReg = gLRegHalf * 2;
 
-const static uchar gRYBorder = gRed + gBorderSize;
-const static uchar gYGBorder = gYellow + gBorderSize;
-const static uchar gGABorder = gGreen + gBorderSize;
-const static uchar gABBorder = gAqua + gBorderSize;
-const static uchar gBPBorder = gBlue + gBorderSize;
-const static uchar gPRBorder = gPurple + gBorderSize;
+const static int gRYBorder = gRed + gHRegHalf;
+const static int gYGBorder = gYellow + gHRegHalf;
+const static int gGABorder = gGreen + gHRegHalf;
+const static int gABBorder = gAqua + gHRegHalf;
+const static int gBPBorder = gBlue + gHRegHalf;
+const static int gPRBorder = gPurple + gHRegHalf;
 
 typedef struct ColorFilter {
     float hue;
@@ -133,9 +138,9 @@ static uchar4 hslTorgb(float hue, float saturation, float lightness) {
 }
 
 static void applyFilter(ColorFilter_t *filter, float *h, float *s, float *l) {
-    *h = *h - 30 + 60 * (filter->hue);
-    *s = *s - 0.3 + 0.6 * (filter->saturation);
-    *l = *l - 0.3 + 0.6 * (filter->lightness);
+    *h = *h - gHRegHalf + gHReg * (filter->hue);
+    *s = *s - gSRegHalf + gSReg * (filter->saturation);
+    *l = *l - gLRegHalf + gLReg * (filter->lightness);
 }
 
 static void rangeValues(float *h, float *s, float *l) {
