@@ -113,15 +113,15 @@ static float hueToColor(float p, float q, float t) {
 }
 
 static uchar4 hslTorgb(float hue, float saturation, float lightness) {
-    float h = hue / 360.0;
-    float r = 0.0;
-    float g = 0.0;
-    float b = 0.0;
+    float h = hue / 360.0f;
+    float r = 0.0f;
+    float g = 0.0f;
+    float b = 0.0f;
 
     if (saturation == 0) {
         r = g = b = lightness;
     } else {
-        float q = lightness < 0.5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
+        float q = lightness < 0.5f ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
         float p = 2 * lightness - q;
 
         r = hueToColor(p, q, h + 1.0f / 3.0f);
